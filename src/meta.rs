@@ -812,6 +812,7 @@ match opcode {
       self.inc_pc_by(3); 
   } 
   0xcb => { 
+      not impl
       self.inc_pc_by(1);
       let cb_opcode = self.current_opcode();
       match cb_opcode { 
