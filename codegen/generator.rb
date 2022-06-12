@@ -7,17 +7,36 @@ require_relative 'lib/case'
 opcodes = JSON.parse(File.read('opcodes.json'))
 opcodes = opcodes['unprefixed']
 
-# opcodes = opcodes.select { |_k, v| v['mnemonic'] == 'LD' }
+# opcodes = opcodes.select { |_k, v| v['mnemonic'] == 'CP' }
+
+all_count = opcodes.keys.count
+generated = 0
+
+todo = []
+done =[]
+
+opcodes.each do |k, v|
+  c = Case.new(k, v)
+  if c.operation.nil?
+    todo << c.name
+  else
+    done << c.name
+    generated += 1
+  end
+
+  puts c.build
+end
+
+puts "Реализовано: #{generated}/#{all_count}"
+puts "Done: #{done.uniq.inspect}"
+puts "TODO: #{todo.uniq.inspect}"
+
+# code = '0xc6'
+# opcode_case = Case.new(code, opcodes[code])
 #
-# opcodes.each do |k, v|
-#   puts Case.new(k, v).build
-# end
+# text = opcode_case.build
+# puts text
 
-code = '0x11'
-opcode_case = Case.new(code, opcodes[code])
-
-text = opcode_case.build
-puts text
 
 # fname = './meta3.rs'
 

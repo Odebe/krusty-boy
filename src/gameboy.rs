@@ -29,19 +29,19 @@ impl MMU {
         }
     }
 
-    pub fn read_i8(&self, from: u16) -> i8 {
-        let value = self.read(from) as u8;
-        let body = (value | 0b01111111_u8) as i8;
-
-        let result =
-            if (value | 0b1000000) > 0 {
-                body * -1
-            } else {
-                body
-            };
-
-        return result;
-    }
+    // pub fn read_i8(&self, from: u16) -> i8 {
+    //     let value = self.read(from) as u8;
+    //     let body = (value | 0b01111111_u8) as i8;
+    //
+    //     let result =
+    //         if (value | 0b1000000) > 0 {
+    //             body * -1
+    //         } else {
+    //             body
+    //         };
+    //
+    //     return result;
+    // }
 
     pub fn read_u8(&self, from: u16) -> u8 {
         self.read(from)
@@ -62,6 +62,7 @@ impl MMU {
     fn write_u8(&mut self, dest: u16, value: u8) {
         self.memory[dest as usize] = value;
     }
+
 
     fn read(&self, dest: u16) -> u8 {
         self.memory[dest as usize]
@@ -179,51 +180,17 @@ impl Emulator {
         self.pc < MEMORY_SIZE
     }
 
-    // pub fn run(&mut self) {
-    //     while self.running() {
-    //         let opcode = self.read_opcode();
-    //         self.step(opcode);
-    //
-    //         // match opcode.x {
-    //         //     0 => match opcode.z {
-    //         //         0 => match opcode.y {
-    //         //             0 => self.nop(),
-    //         //             1 => {
-    //         //                 // LD
-    //         //                 self.mmu.write_u16(self.read_nn(), self.sp);
-    //         //             },
-    //         //             2 => self.stop(),
-    //         //             3 => self.jr(self.read_d()),
-    //         //             4..7 => self.jr2(self.read_d(), opcode.y - 4),
-    //         //             _ => 123,
-    //         //         },
-    //         //         1 => match opcode.q {
-    //         //             0 => {
-    //         //                 // LD
-    //         //
-    //         //                 self.ld(self.read_rp(opcode.p), self.read_nn())
-    //         //             },
-    //         //             1 => 222,
-    //         //             _ => 123
-    //         //         },
-    //         //         _ => 123
-    //         //     },
-    //         //     _ =>  println!("PUK"),
-    //         // }
-    //     }
-    // }
-
     fn read_opcode(&mut self) -> Opcode {
         let data = self.mmu.read(self.pc);
         self.inc_pc_by(1);
         return Opcode.new(data);
     }
 
-    fn read_d(&mut self) -> i8 {
-        let value = self.mmu.read_i8(self.pc);
-        self.inc_pc_by(1);
-        return value;
-    }
+    // fn read_d(&mut self) -> i8 {
+    //     let value = self.mmu.read_i8(self.pc);
+    //     self.inc_pc_by(1);
+    //     return value;
+    // }
 
     pub fn read_n(&mut self) -> u8 {
         let value = self.mmu.read_u8(self.pc);
@@ -241,53 +208,152 @@ impl Emulator {
         self.pc = self.pc + bytes as u16;
     }
 
-    fn add16(&mut self, a : u16, b : u16)  -> u16 {
-        let tmp = a as u32 + b as u32;
+    // ALU start
 
+    fn alu_add_u8(&mut self, a : u8, b : u8)  -> u8 {
+        let tmp = a.wrapping_add(b);
+
+        self.c_flag = u16::from(a) + u16::from(b) > 0xff;
+        self.h_flag = ((a & 0x0F) + (b & 0x0F)) > 0x0F;
+        self.h_flag = tmp == 0x00;
         self.n_flag = false;
-        self.c_flag = tmp > 0xFFFF;
+
+        return tmp as u8;
+    }
+
+    fn alu_add_u16(&mut self, a : u16, b : u16)  -> u8 {
+        let tmp = a.wrapping_add(b);
+
+        self.c_flag = a > 0xFFFF - n;
         self.h_flag = ((a & 0x0FFF) + (b & 0x0FFF)) > 0x0FFF;
+        self.n_flag = false;
 
-        return tmp as u16;
+        return tmp as u8;
     }
 
-    fn step(&mut self, opcode : Opcode) {
-        match opcode.raw {
-            // NOP
-            0x00 => {},
-            // LD BC,d16
-            0x01 => {
-                println!("")
-                self.registers.set_bc(self.read_nn())
-            },
-            // LD (BC),A
-            0x02 => self.mmu.write_u8(self.registers.bc(), self.registers.a),
-            // INC BC
-            0x03 => self.registers.set_bc(self.registers.bc() + 1),
-            // INC B
-            0x04 => self.registers.set_b(self.registers.b + 1),
-            // DEC B
-            0x05 => self.registers.set_b(self.registers.b - 1),
-            // LD B,d8
-            0x06 => self.registers.set_b(self.read_n()),
-            // RLCA
-            0x07 => {}, // TODO
-            // LD (a16),SP
-            0x08 => self.mmu.write_u16(self.read_nn(), self.sp),
-            // ADD HL,BC
-            0x09 => {
-                let tmp = self.add16(self.registers.hl(), self.registers.bc());
-                self.registers.set_hl(tmp);
-            },
-            // LD A,(BC)
-            0x0A => {
-                let tmp = self.mmu.read_u8(self.registers.bc());
-                self.registers.set_a(tmp);
-            },
-            // DEC BC
-            0x0B => self.registers.set_bc(self.registers.bc() - 1),
+    fn alu_sub(&mut self, a : u8, b : u8)  -> u8 {
+        let tmp = a.wrapping_sub(b);
 
-            _ => 123
-        }
+        self.c_flag = u16::from(a) < u16::from(b);
+        self.h_flag = (a & 0x0f) < (b & 0x0f);
+        self.h_flag = tmp == 0x00;
+        self.n_flag = false;
+
+        return tmp as u8;
     }
+
+    fn alu_adc(&mut self, a: u8, b: u8) -> u8 {
+        let c = u8::from(self.c_flag);
+        let tmp = a.wrapping_add(n).wrapping_add(c);
+
+        self.c_flag = u16::from(a) + u16::from(b) + u16::from(c) > 0xff;
+        self.h_flag = (a & 0x0f) + (n & 0x0f) + (c & 0x0f) > 0x0f;
+        self.h_flag = tmp == 0x00;
+        self.n_flag = false;
+
+        return tmp as u8;
+    }
+
+    fn alu_sbc(&mut self, a : u8, b: u8) -> u8 {
+        let c = u8::from(self.c_flag);
+        let r = a.wrapping_sub(b).wrapping_sub(c);
+
+        self.c_flag = u16::from(a) < u16::from(b) + u16::from(c);
+        self.h_flag = (a & 0x0f) < (b & 0x0f) + c;
+        self.h_flag = tmp == 0x00;
+        self.n_flag = true;
+
+        return tmp as u8;
+    }
+
+    fn alu_and(&mut self, a : u8, b: u8) -> u8 {
+        let tmp = a & b;
+
+        self.c_flag = false;
+        self.h_flag = true;
+        self.h_flag = tmp == 0x00;
+        self.n_flag = true;
+
+        return tmp as u8;
+    }
+
+    fn alu_xor(&mut self, a: u8, b: u8) -> u8{
+        let tmp = a ^ b;
+
+        self.c_flag = false;
+        self.h_flag = false;
+        self.h_flag = tmp == 0x00;
+        self.n_flag = false;
+
+        return tmp as u8;
+    }
+
+    fn alu_or(&mut self, a: u8, b: u8) -> u8 {
+        let tmp = a | b;
+
+        self.c_flag = false;
+        self.h_flag = false;
+        self.h_flag = tmp == 0x00;
+        self.n_flag = false;
+
+        return tmp as u8;
+    }
+
+    fn alu_cp(&mut self, a: u8, b: u8) -> u8 {
+        self.alu_sub(a, b);
+
+        return a;
+    }
+
+    // fn alu_sub_u16(&mut self, a : u16, b : u16)  -> u8 {
+    //     let tmp = a.wrapping_sub(b);
+    //
+    //     self.c_flag = a > 0xFFFF - n;
+    //     self.h_flag = ((a & 0x0FFF) + (b & 0x0FFF)) > 0x0FFF;
+    //     self.n_flag = false;
+    //
+    //     return tmp as u8;
+    // }
+
+    // ALU end
+
+    // fn step(&mut self, opcode : Opcode) {
+    //     match opcode.raw {
+    //         // NOP
+    //         0x00 => {},
+    //         // LD BC,d16
+    //         0x01 => {
+    //             println!("")
+    //             self.registers.set_bc(self.read_nn())
+    //         },
+    //         // LD (BC),A
+    //         0x02 => self.mmu.write_u8(self.registers.bc(), self.registers.a),
+    //         // INC BC
+    //         0x03 => self.registers.set_bc(self.registers.bc() + 1),
+    //         // INC B
+    //         0x04 => self.registers.set_b(self.registers.b + 1),
+    //         // DEC B
+    //         0x05 => self.registers.set_b(self.registers.b - 1),
+    //         // LD B,d8
+    //         0x06 => self.registers.set_b(self.read_n()),
+    //         // RLCA
+    //         0x07 => {}, // TODO
+    //         // LD (a16),SP
+    //         0x08 => self.mmu.write_u16(self.read_nn(), self.sp),
+    //         // ADD HL,BC
+    //         0x09 => {
+    //             let tmp = self.add16(self.registers.hl(), self.registers.bc());
+    //             self.registers.set_hl(tmp);
+    //         },
+    //         // LD A,(BC)
+    //         0x0A => {
+    //             let tmp = self.mmu.read_u8(self.registers.bc());
+    //             self.registers.set_a(tmp);
+    //         },
+    //         // DEC BC
+    //         0x0B => self.registers.set_bc(self.registers.bc() - 1),
+    //
+    //         _ => 123
+    //     }
+    // }
 }

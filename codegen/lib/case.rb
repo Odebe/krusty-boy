@@ -26,6 +26,10 @@ class Case
     @opcode
   end
 
+  def name
+    info['mnemonic']
+  end
+
   def mnemonic
     "#{ info['mnemonic'] } #{ info['operand1'] } #{ info['operand2'] }"
   end

@@ -40,11 +40,11 @@ class Operand
   end
 
   def u16?
-    clean.chars.count == 2
+    source_name.chars.count == 2
   end
 
   def u8?
-    clean.chars.count == 1
+    source_name.chars.count == 1
   end
 
   def source_name
