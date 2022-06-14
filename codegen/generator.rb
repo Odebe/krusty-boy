@@ -5,9 +5,11 @@ require 'byebug'
 require_relative 'lib/case'
 
 opcodes = JSON.parse(File.read('opcodes.json'))
-opcodes = opcodes['unprefixed']
 
-# opcodes = opcodes.select { |_k, v| v['mnemonic'] == 'CP' }
+# opcodes = opcodes['unprefixed']
+opcodes = opcodes['cbprefixed']
+
+# opcodes = opcodes.select { |_k, v| %w[RR RRC].include? v['mnemonic'] }
 
 all_count = opcodes.keys.count
 generated = 0

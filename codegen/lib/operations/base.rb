@@ -1,3 +1,5 @@
+require_relative '../operand'
+
 module Operations
   class Base
     attr_reader :operand1, :operand2

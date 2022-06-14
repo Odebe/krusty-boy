@@ -204,18 +204,17 @@ impl Emulator {
         return value;
     }
 
-    pub fn inc_pc_by(&mut self, bytes: u8) {
-        self.pc = self.pc + bytes as u16;
-    }
+    // pub fn inc_pc_by(&mut self, bytes: u8) {
+    //     self.pc = self.pc + bytes as u16;
+    // }
 
     // ALU start
-
     fn alu_add_u8(&mut self, a : u8, b : u8)  -> u8 {
         let tmp = a.wrapping_add(b);
 
         self.c_flag = u16::from(a) + u16::from(b) > 0xff;
         self.h_flag = ((a & 0x0F) + (b & 0x0F)) > 0x0F;
-        self.h_flag = tmp == 0x00;
+        self.z_flag = tmp == 0x00;
         self.n_flag = false;
 
         return tmp as u8;
@@ -236,7 +235,7 @@ impl Emulator {
 
         self.c_flag = u16::from(a) < u16::from(b);
         self.h_flag = (a & 0x0f) < (b & 0x0f);
-        self.h_flag = tmp == 0x00;
+        self.z_flag = tmp == 0x00;
         self.n_flag = false;
 
         return tmp as u8;
@@ -248,7 +247,7 @@ impl Emulator {
 
         self.c_flag = u16::from(a) + u16::from(b) + u16::from(c) > 0xff;
         self.h_flag = (a & 0x0f) + (n & 0x0f) + (c & 0x0f) > 0x0f;
-        self.h_flag = tmp == 0x00;
+        self.z_flag = tmp == 0x00;
         self.n_flag = false;
 
         return tmp as u8;
@@ -260,7 +259,7 @@ impl Emulator {
 
         self.c_flag = u16::from(a) < u16::from(b) + u16::from(c);
         self.h_flag = (a & 0x0f) < (b & 0x0f) + c;
-        self.h_flag = tmp == 0x00;
+        self.z_flag = tmp == 0x00;
         self.n_flag = true;
 
         return tmp as u8;
@@ -271,7 +270,7 @@ impl Emulator {
 
         self.c_flag = false;
         self.h_flag = true;
-        self.h_flag = tmp == 0x00;
+        self.z_flag = tmp == 0x00;
         self.n_flag = true;
 
         return tmp as u8;
@@ -282,7 +281,7 @@ impl Emulator {
 
         self.c_flag = false;
         self.h_flag = false;
-        self.h_flag = tmp == 0x00;
+        self.z_flag = tmp == 0x00;
         self.n_flag = false;
 
         return tmp as u8;
@@ -293,7 +292,7 @@ impl Emulator {
 
         self.c_flag = false;
         self.h_flag = false;
-        self.h_flag = tmp == 0x00;
+        self.z_flag = tmp == 0x00;
         self.n_flag = false;
 
         return tmp as u8;
@@ -304,6 +303,55 @@ impl Emulator {
 
         return a;
     }
+
+    fn alu_rlc(&mut self, a: u8) -> u8 {
+        let c = (a & 0b10000000) >> 7 == 0x01;
+        let tmp = (a << 1) | u8::from(c);
+
+        self.c_flag = false;
+        self.h_flag = false;
+        self.z_flag = tmp == 0x00;
+        self.n_flag = false;
+
+        return tmp;
+    }
+
+    fn alu_rl(&mut self, a: u8) -> u8 {
+        let c = (a & 0b10000000) >> 7 == 0x01;
+        let tmp = (a << 1) | u8::from(self.c_flag);
+
+        self.c_flag = c;
+        self.h_flag = false;
+        self.z_flag = tmp == 0x00;
+        self.n_flag = false;
+
+        return tmp;
+    }
+
+    fn alu_rrc(&mut self, a: u8) -> u8 {
+        let c =  a & 0x01 == 0x01;
+        let tmp = 0b10000000 | (a >> 1);
+
+        self.c_flag = c;
+        self.h_flag = false;
+        self.z_flag = tmp == 0x00;
+        self.n_flag = false;
+
+        return tmp;
+    }
+
+    fn alu_rr(&mut self, a: u8) -> u8 {
+        let c = (a & 0x01) >> 7 == 0x01;
+        let tmp = (a >> 1) | (uu::from(self.c_flag) << 7);
+
+        self.c_flag = c;
+        self.h_flag = false;
+        self.z_flag = tmp == 0x00;
+        self.n_flag = false;
+
+        return tmp;
+    }
+
 
     // fn alu_sub_u16(&mut self, a : u16, b : u16)  -> u8 {
     //     let tmp = a.wrapping_sub(b);
