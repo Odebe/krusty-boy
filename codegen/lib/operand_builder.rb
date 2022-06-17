@@ -23,6 +23,8 @@ class OperandBuilder
         ::Strategy::Read::Register
       elsif @operand.pointer?
         ::Strategy::Read::Pointer
+      elsif @operand.number?
+        ::Strategy::Read::Number
       else
         ::Strategy::Read::Simple
       end

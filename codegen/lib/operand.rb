@@ -24,11 +24,15 @@ class Operand
   end
 
   def addr?
-    indirect? || (!register? && !pointer?)
+    indirect? || (!number? && !register? && !pointer?)
   end
 
   def indirect?
     /^\(\w{1,3}\)$/.match?(@mnem)
+  end
+
+  def number?
+    /^\d$/.match?(@mnem)
   end
 
   def pointer?

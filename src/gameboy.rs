@@ -352,6 +352,67 @@ impl Emulator {
         return tmp;
     }
 
+    fn alu_sla(&mut self, a: u8) -> u8 {
+        let c = (a & 0b10000000) >> 7 == 0x01;
+        let tmp = a << 1;
+
+        self.c_flag = c;
+        self.h_flag = false;
+        self.z_flag = tmp == 0x00;
+        self.n_flag = false;
+
+        return tmp;
+    }
+
+    fn alu_sra(&mut self, a: u8) -> u8 {
+        let c = a & 0x01 == 0x01;
+        let tmp = (a >> 1) | (a & 0b10000000);
+
+        self.c_flag = c;
+        self.h_flag = false;
+        self.z_flag = tmp == 0x00;
+        self.n_flag = false;
+
+        return tmp;
+    }
+
+    fn alu_srl(&mut self, a: u8) -> u8 {
+        let c = a & 0x01 == 0x01;
+        let tmp = a >> 1;
+
+        self.c_flag = c;
+        self.h_flag = false;
+        self.z_flag = tmp == 0x00;
+        self.n_flag = false;
+
+        return tmp;
+    }
+
+    fn alu_swap(&mut self, a: u8) -> u8 {
+        self.c_flag = false;
+        self.h_flag = false;
+        self.z_flag = a == 0x00;
+        self.n_flag = false;
+
+        return (a >> 4) | (a << 4);
+    }
+
+    fn alu_bit(&mut self, a: u8, bit_num: u8) {
+        let tmp = a & (1 << bit_num) == 0x00;
+
+        self.h_flag = false;
+        self.z_flag = tmp;
+        self.n_flag = true;
+    }
+
+    fn alu_res(&mut self, a: u8, bit_num: u8) -> u8 {
+        return a & !(1 << bit_num);
+    }
+
+    fn alu_set(&mut self, a: u8, bit_num: u8) -> u8 {
+        return a | (1 << bit_num);
+    }
+
 
     // fn alu_sub_u16(&mut self, a : u16, b : u16)  -> u8 {
     //     let tmp = a.wrapping_sub(b);

@@ -22,10 +22,10 @@ module Operations
     end
 
     def add_write_func_call
-      if operand1.register?
-        "cpu.registers.set_#{operand1.clean.downcase}(value)"
-      elsif operand1.indirect?
+      if operand1.indirect?
         "cpu.mmu.write_u8(addr, value)"
+      elsif operand1.register?
+        "cpu.registers.set_#{operand1.clean.downcase}(value)"
       else
         'compile_error!()'
       end

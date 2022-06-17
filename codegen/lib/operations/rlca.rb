@@ -6,7 +6,7 @@ module Operations
       ERB.new <<~EOF
         let a = <%= op1_builder.call %>;
 
-        let value = cpu.alu_rlc(a);
+        let value = <%= add_func_call %>;
         
         <%= call %>;
 

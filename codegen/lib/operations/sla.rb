@@ -1,7 +1,7 @@
 require_relative './base'
 
 module Operations
-  class RRC < Base
+  class SLA < Base
     def self.template
       ERB.new <<~EOF
       <% if operand1.indirect? %>
@@ -18,7 +18,7 @@ module Operations
     end
 
     def add_func_call
-      "cpu.alu_rrc(op1)"
+      "cpu.alu_sla(op1)"
     end
 
     def add_write_func_call
