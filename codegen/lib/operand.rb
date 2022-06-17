@@ -1,14 +1,20 @@
 class Operand
   TRANSLATIONS = {
     'd8' => 'n',
-    'r8' => 'u8',
+    'r8' => 'd',
     'd16' => 'nn',
     'a16' => 'nn'
   }
 
+  attr_reader :key
+
   def initialize(key, mnem)
     @key = key
     @mnem = mnem || ''
+  end
+
+  def present?
+    @mnem != ''
   end
 
   def render_as(strategy)
@@ -24,7 +30,7 @@ class Operand
   end
 
   def addr?
-    indirect? || (!number? && !register? && !pointer?)
+    indirect? || (!number? && !register? && !pointer? && !flag?)
   end
 
   def indirect?
@@ -40,7 +46,27 @@ class Operand
   end
 
   def register?
-    %w[A B C BC D E DE H L HL].include?(clean)
+    %w[A F B C BC D E DE H L HL].include?(clean)
+  end
+
+  def flag?
+    %w[Z NZ C NZ].include?(clean)
+  end
+
+  def composed?
+    composition.any?
+  end
+
+  def composition
+    @composition ||= /^(\w{1,2})(\+|\-)(\w{0,2})$/.match(clean_name)[1..-1]
+  end
+
+  def clean_flag
+    clean_name.gsub(/N/, '')
+  end
+
+  def negative_flag?
+    flag? && clean[0] == 'N'
   end
 
   def u16?

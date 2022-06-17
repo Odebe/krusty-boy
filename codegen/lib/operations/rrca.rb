@@ -4,22 +4,9 @@ module Operations
   class RRCA < Base
     def self.template
       ERB.new <<~EOF
-        let a = <%= op1_builder.call %>;
-
-        let value = <%= add_func_call %>;;
-        
-        <%= call %>;
-
-        cpu.n_flag = false;
+        cpu.reg.a = cpu.alu_rrc(<%= op1_builder.call %>);
+        cpu.reg.flag_set(N, false);
       EOF
-    end
-
-    def add_func_call
-      "cpu.alu_rrc(a)"
-    end
-
-    def call
-      "cpu.registers.set_a(value)"
     end
 
     def op1_builder

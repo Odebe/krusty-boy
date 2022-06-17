@@ -4,21 +4,16 @@ module Operations
   class XOR < Base
     def self.template
       ERB.new <<~EOF
-        let a = cpu.registers.a;
-        let b = <%= @op1_builder.call %>;
-
-        let value = <%= add_func_call %>;
-
-          <%= call %>;
+        <%= call %>;
       EOF
     end
 
     def add_func_call
-      "cpu.alu_xor(a, b)"
+      "cpu.alu_xor(cpu.reg.a, #{@op1_builder.call})"
     end
 
     def call
-      "cpu.registers.set_a(value)"
+      "cpu.reg.a = #{add_func_call} "
     end
   end
 end

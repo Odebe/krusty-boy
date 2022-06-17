@@ -9,7 +9,7 @@ opcodes = JSON.parse(File.read('opcodes.json'))
 # opcodes = opcodes['unprefixed']
 opcodes = opcodes['cbprefixed']
 
-# opcodes = opcodes.select { |_k, v| %w[RES SET].include? v['mnemonic'] }
+opcodes = opcodes.select { |_k, v| %w[SWAP].include? v['mnemonic'] }
 
 all_count = opcodes.keys.count
 generated = 0

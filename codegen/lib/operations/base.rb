@@ -10,10 +10,20 @@ module Operations
     end
 
     def build
-      self.class.template.result(binding)
+      select_template.result(binding)
     end
 
     private
+
+    def select_template
+      if operand1.u8? && respond_to?(:u8_template)
+        u8_template
+      elsif operand1.u16? && respond_to?(:u16_template)
+        u16_template
+      else
+        self.class.template
+      end
+    end
 
     def operand1
       @op1_builder.operand

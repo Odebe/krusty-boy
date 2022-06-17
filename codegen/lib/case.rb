@@ -35,7 +35,7 @@ class Case
   end
 
   def operand1
-    OperandBuilder.new('operand1', info['operand1'])
+    OperandBuilder.new('operand1', info['operand1'], only: info['operand2'].nil?)
   end
 
   def operand2

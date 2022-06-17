@@ -2,35 +2,24 @@ require_relative './base'
 
 module Operations
   class ADD < Base
-    def self.template
+    def u8_template
       ERB.new <<~EOF
-        let a = <%= @op1_builder.call %>;
-        let b = <%= @op2_builder.call %>;
-
-        let value = <%= add_func_call %>;
-
-          <%= call %>;
+        cpu.reg.a = #{call};
       EOF
     end
 
-    def add_func_call
-      if operand2.u8?
-        "cpu.alu_add_u8(a, b)"
-      elsif operand2.u16?
-        "cpu.alu_add_u16(a, b)"
-      else
-        'compile_error!()'
-      end
+    def u16_template
+      ERB.new <<~EOF
+<% if operand1.pointer? %>
+        cpu.#{operand1.clean.downcase} = #{call};
+<% else %>
+        cpu.reg.set_#{operand1.clean.downcase}(#{call});
+<% end %>
+      EOF
     end
 
     def call
-      if operand1.pointer?
-        "cpu.set_#{operand1.clean.downcase}(value)"
-      elsif operand1.register?
-        "cpu.registers.set_#{operand1.clean.downcase}(value)"
-      else
-        'compile_error!()'
-      end
+      "cpu.alu_add_u8(#{@op1_builder.call}, #{@op2_builder.call})"
     end
   end
 end

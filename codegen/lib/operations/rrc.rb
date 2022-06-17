@@ -24,8 +24,10 @@ module Operations
     def add_write_func_call
       if operand1.indirect?
         "cpu.mmu.write_u8(addr, value)"
-      elsif operand1.register?
-        "cpu.registers.set_#{operand1.clean.downcase}(value)"
+      elsif operand1.register? && operand1.u16?
+        "cpu.reg.set_#{operand1.clean.downcase}(value)"
+      elsif operand1.register? && operand1.u8?
+        "cpu.reg.#{operand1.clean.downcase} = value"
       else
         'compile_error!()'
       end

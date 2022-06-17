@@ -4,18 +4,16 @@ module Operations
   class INC < Base
     def self.template
       ERB.new <<~EOF
-        let value = <%= @op1_builder.call %>;
-        
-          <%= call %>;
+<% if operand1.indirect? %>
+       cpu.write_u8(<%= operand1.render_as(::Strategy::Read::Register) %>, <%= call %>);
+<% else %>
+      cpu.reg.<%= operand1.clean.downcase %> = <%= call %>;
+<% end %>
       EOF
     end
 
     def call
-      if operand1.indirect?
-        "cpu.write(#{operand1.render_as(::Strategy::Read::Register)}, value + 1)"
-      else
-        "cpu.registers.set_#{operand1.clean.downcase}(value + 1)"
-      end
+      "cpu.alu_inc(#{@op1_builder.call})"
     end
   end
 end
