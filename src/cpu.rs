@@ -26,30 +26,42 @@ impl Cpu {
 
     fn read_opcode(&mut self) -> Opcode {
         let data = self.mmu.read_u8(self.pc);
-        self.inc_pc_by(1);
+        self.reg.pc += 1;
+
         return data;
     }
 
     fn read_d(&mut self) -> i8 {
         let value = self.mmu.read_u8(self.pc);
-        self.inc_pc_by(1);
+        self.reg.pc += 1;
+
         return value as i8;
     }
 
     pub fn read_n(&mut self) -> u8 {
         let value = self.mmu.read_u8(self.pc);
-        self.inc_pc_by(1);
+        self.reg.pc += 1;
+
         return value;
     }
 
     pub fn read_nn(&mut self) -> u16 {
         let value = self.mmu.read_u16(self.pc);
-        self.inc_pc_by(2);
+        self.reg.pc += 2;;
+
         return value;
     }
 
-    pub fn inc_pc_by(&mut self, bytes: u8) {
-        self.pc = self.pc + bytes as u16;
+    fn stack_add(&mut self, v: u16) {
+        self.reg.sp -= 2;
+        self.mmu.write_u16(self.reg.sp, v);
+    }
+
+    fn stack_pop(&mut self) -> u16 {
+        let r = self.mmu.read_u16(self.reg.sp);
+        self.reg.sp += 2;
+
+        return r;
     }
 
     fn alu_dec(&mut self, a: u8) -> u8 {

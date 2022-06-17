@@ -37,15 +37,14 @@ impl MMU {
         ((value_sn as u16 ) << 8) | value_fn as u16
     }
 
-    fn write_u16(&mut self, dest: u16, value: u16) {
+    pub fn write_u16(&mut self, dest: u16, value: u16) {
         self.write_u8(dest, (value & 0xFF) as u8);
         self.write_u8(dest +1, ((value >> 8) & 0xFF) as u8);
     }
 
-    fn write_u8(&mut self, dest: u16, value: u8) {
+    pub fn write_u8(&mut self, dest: u16, value: u8) {
         self.memory[dest as usize] = value;
     }
-
 
     fn read(&self, dest: u16) -> u8 {
         self.memory[dest as usize]

@@ -11,6 +11,8 @@ class Case
         println!("<%= mnemonic %>");
 
         <%= operation.build if operation %>
+
+        <%= info['cycles'].first %>
       },
     EOF
   end
