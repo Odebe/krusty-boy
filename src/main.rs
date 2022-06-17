@@ -2,11 +2,9 @@ use std::fs::{File, read};
 use std::io::Read;
 
 use clap::{App, Arg};
-use crate::gameboy::Emulator;
 
-mod gameboy;
-mod meta;
-mod cpu;
+use krusty_boy::mmu::MMU;
+use krusty_boy::cpu::Cpu;
 
 fn init_app() {
     App::new("WIP: Rusty GameBoy emulator")
@@ -27,8 +25,8 @@ fn main() {
 
     if let Some(rom_path) = app.value_of("rom") {
         let rom = read_rom(&rom_path);
-        let mut mmu = gameboy::MMU::from_rom(&rom);
-        let mut cpu = gameboy::Emulator::new(mmu);
+        let mut mmu = MMU::from_rom(&rom);
+        let mut cpu = Cpu::new(mmu);
 
         main_loop(cpu);
     } else {

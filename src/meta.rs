@@ -1,9 +1,9 @@
-use crate::gameboy::{Emulator};
+use k
 
 pub fn exec_opcode(cpu: &mut Emulator) -> (u8, u8) {
   let opcode = emu.read_opcode();
 
-  match opcode.raw() {
+  match opcode {
     0x00 => { 
         println!("NOP  ");
         (1, 4) 

@@ -1,135 +1,277 @@
-// // pub struct Emulator {
-// //     mmu: MMU,
-// //     pc: u16,
-// //     registers: Registers,
-// //
-// //     z_flag: bool,
-// //     b_flag: bool,
-// //     h_flag: bool,
-// //     c_flag: bool,
-// // }
-// use std::cell::RefCell;
-// use std::rc::Rc;
-//
-// pub struct Cpu {
-//     mmu: Ack<ReffCell<Mmu>>,
-// }
-//
-// pub struct Flags {
-//     z: u8,
-//     b: u8,
-//     h: u8,
-//     c: u8
-// }
-//
-// pub struct Mmu {
-//     memory: [u8; 0xFFFF],
-// }
-//
-// pub struct MmuMemoryIterator {
-//     position: u16,
-//     memory: [u8; 0xFFFF],
-// }
-//
-// pub struct Ppu {
-// }
-//
-// pub struct Apu {
-// }
-//
-// impl FLags {
-//     pub fn new() -> Self {
-//         Self { 0, 0, 0, 0}
-//     }
-// }
-//
-// impl Mmu {
-//     pub fn new() -> Self {
-//         Self {
-//             memory: [0; 0xFFFF]
-//         }
-//     }
-//
-//     pub fn iter(&self) -> MmuMemoryIterator {
-//         MmuMemoryIterator { position: 0, memory: self.memory }
-//     }
-//
-//     pub fn load_rom(&mut self, rom: &Vec<u8>) {
-//         for (i, e) in rom.iter().enumerate() {
-//             if ustart + i < Self::MEMORY_SIZE as usize {
-//                 self.memory[ustart + i] = *e;
-//             }
-//         }
-//     }
-// }
-//
-// impl Cpu {
-//     pub fn new(mmu : &Mmu) -> Self { Self { mmu } }
-// }
-//
-// impl Ppu {
-//     pub fn new() -> Self { Self {} }
-// }
-//
-// impl Apu {
-//     pub fn new() -> Self { Self {} }
-// }
-//
-// pub struct Emulator {
-//     pc: u16,
-//     cpu: Cpu,
-//     mmu: Rc<RefCell<Mmu>>,
-//     ppu: Ppu,
-//     apu: Apu,
-//     registers: Registers,
-//     flags: Flags,
-// }
-//
-// impl Emulator {
-//     const PROG_START: u16 = 0;
-//     const MEMORY_SIZE: u16 = 0xFFFF;
-//
-//     pub fn new() -> Self {
-//         let mmu = Rc::new(RefCell::new(Mmu::new()));
-//
-//         Self {
-//             pc: Self::PROG_START,
-//             cpu: Cpu::new(mmu.copy),
-//             mmu: mmu.copy,
-//             apu: Apu::New(),
-//             ppu: Apu::New(),
-//             registers: Registers::new(),
-//             flags: Flags::new(),
-//         }
-//     }
-//
-//     pub fn load_rom(&mut self, rom: &Vec<u8>) {
-//         mmu.load_rom(rom);
-//     }
-//
-//     pub fn running(&self) -> bool {
-//         self.pc < Self::MEMORY_SIZE
-//     }
-//
-//     fn memory_read(&self, dest: u16) -> u8 {
-//         self.memory[dest as usize]
-//     }
-//
-//     pub fn current_opcode(&self) -> u8 {
-//         self.memory_read(self.pc)
-//     }
-//
-//     fn read_u8(&self, from: u16) -> u8 {
-//         self.memory_read(from)
-//     }
-//
-//     fn read_u16(&self, from: u16) -> u16 {
-//         let value_fn = self.memory_read(from);
-//         let value_sn = self.memory_read(from + 1);
-//         ((value_sn as u16 ) << 8) | value_fn as u16
-//     }
-//
-//     pub fn inc_pc_by(&mut self, bytes: u8) {
-//         self.pc = self.pc + bytes as u16;
-//     }
-// }
+use crate::registers::Flag::{C, N, H, Z};
+use crate::registers::Registers;
+use crate::mmu::MMU;
+use crate::consts::{PROG_START, MEMORY_SIZE};
+
+pub struct Cpu {
+    pub mmu: MMU,
+    pub pc: u16,
+    pub sp: u16,
+    pub reg: Registers,
+}
+
+impl Cpu {
+    pub fn new(mut mmu : MMU) -> Self {
+        Self {
+            mmu,
+            pc: PROG_START,
+            sp: 0,
+            reg: Registers::new(),
+        }
+    }
+
+    pub fn running(&self) -> bool {
+        self.pc < MEMORY_SIZE
+    }
+
+    fn read_opcode(&mut self) -> Opcode {
+        let data = self.mmu.read_u8(self.pc);
+        self.inc_pc_by(1);
+        return data;
+    }
+
+    fn read_d(&mut self) -> i8 {
+        let value = self.mmu.read_u8(self.pc);
+        self.inc_pc_by(1);
+        return value as i8;
+    }
+
+    pub fn read_n(&mut self) -> u8 {
+        let value = self.mmu.read_u8(self.pc);
+        self.inc_pc_by(1);
+        return value;
+    }
+
+    pub fn read_nn(&mut self) -> u16 {
+        let value = self.mmu.read_u16(self.pc);
+        self.inc_pc_by(2);
+        return value;
+    }
+
+    pub fn inc_pc_by(&mut self, bytes: u8) {
+        self.pc = self.pc + bytes as u16;
+    }
+
+    fn alu_dec(&mut self, a: u8) -> u8 {
+        let tmp = a.wrapping_sub(1);
+
+        self.reg.flag_set(H, a.trailing_zeros() >= 4);
+        self.reg.flag_set(N, true);
+        self.reg.flag_set(Z, tmp == 0);
+
+        return tmp;
+    }
+
+    fn alu_inc(&mut self, a: u8) -> u8 {
+        let tmp = a.wrapping_add(1);
+
+        self.reg.flag_set(H, (a & 0x0f) + 0x01 > 0x0f);
+        self.reg.flag_set(N, false);
+        self.reg.flag_set(Z, tmp == 0x00);
+
+        return tmp;
+    }
+
+    fn alu_add_u8(&mut self, a : u8, b : u8)  -> u8 {
+        let tmp = a.wrapping_add(b);
+
+        self.reg.flag_set(C, u16::from(a) + u16::from(b) > 0xff);
+        self.reg.flag_set(H, ((a & 0x0F) + (b & 0x0F)) > 0x0F);
+        self.reg.flag_set(Z, tmp == 0x00);
+        self.reg.flag_set(N, false);
+
+        return tmp as u8;
+    }
+
+    fn alu_add_u16(&mut self, a : u16, b : u16)  -> u8 {
+        let tmp = a.wrapping_add(b);
+
+        self.reg.flag_set(C, a > 0xFFFF - n);
+        self.reg.flag_set(H, ((a & 0x0FFF) + (b & 0x0FFF)) > 0x0FFF);
+        self.reg.flag_set(N, false);
+
+        return tmp as u8;
+    }
+
+    fn alu_sub(&mut self, a : u8, b : u8)  -> u8 {
+        let tmp = a.wrapping_sub(b);
+
+        self.reg.flag_set(C, u16::from(a) < u16::from(b));
+        self.reg.flag_set(H, (a & 0x0f) < (b & 0x0f));
+        self.reg.flag_set(Z, tmp == 0x00);
+        self.reg.flag_set(N, false);
+
+        return tmp as u8;
+    }
+
+    fn alu_adc(&mut self, a: u8, b: u8) -> u8 {
+        let c = u8::from(self.c_flag);
+        let tmp = a.wrapping_add(n).wrapping_add(c);
+
+        self.reg.flag_set(C, u16::from(a) + u16::from(b) + u16::from(c) > 0xff);
+        self.reg.flag_set(H, (a & 0x0f) + (n & 0x0f) + (c & 0x0f) > 0x0f);
+        self.reg.flag_set(Z, tmp == 0x00);
+        self.reg.flag_set(N, false);
+
+        return tmp as u8;
+    }
+
+    fn alu_sbc(&mut self, a : u8, b: u8) -> u8 {
+        let c = u8::from(self.c_flag);
+        let r = a.wrapping_sub(b).wrapping_sub(c);
+
+        self.reg.flag_set(C, u16::from(a) < u16::from(b) + u16::from(c));
+        self.reg.flag_set(H, (a & 0x0f) < (b & 0x0f) + c);
+        self.reg.flag_set(Z, tmp == 0x00);
+        self.reg.flag_set(N, true);
+
+        return tmp as u8;
+    }
+
+    fn alu_and(&mut self, a : u8, b: u8) -> u8 {
+        let tmp = a & b;
+
+        self.reg.flag_set(C, false);
+        self.reg.flag_set(H, true);
+        self.reg.flag_set(Z, tmp == 0x00);
+        self.reg.flag_set(N, true);
+
+        return tmp as u8;
+    }
+
+    fn alu_xor(&mut self, a: u8, b: u8) -> u8{
+        let tmp = a ^ b;
+
+        self.reg.flag_set(C, false);
+        self.reg.flag_set(H, false);
+        self.reg.flag_set(Z, tmp == 0x00);
+        self.reg.flag_set(N, false);
+
+        return tmp as u8;
+    }
+
+    fn alu_or(&mut self, a: u8, b: u8) -> u8 {
+        let tmp = a | b;
+
+        self.reg.flag_set(C, false);
+        self.reg.flag_set(H, false);
+        self.reg.flag_set(Z, tmp == 0x00);
+        self.reg.flag_set(N, false);
+
+        return tmp as u8;
+    }
+
+    fn alu_cp(&mut self, a: u8, b: u8) -> u8 {
+        self.alu_sub(a, b);
+
+        return a;
+    }
+
+    fn alu_rlc(&mut self, a: u8) -> u8 {
+        let c = (a & 0b10000000) >> 7 == 0x01;
+        let tmp = (a << 1) | u8::from(c);
+
+        self.reg.flag_set(C, false);
+        self.reg.flag_set(H, false);
+        self.reg.flag_set(Z, tmp == 0x00);
+        self.reg.flag_set(N, false);
+
+        return tmp;
+    }
+
+    fn alu_rl(&mut self, a: u8) -> u8 {
+        let c = (a & 0b10000000) >> 7 == 0x01;
+        let tmp = (a << 1) | u8::from(self.c_flag);
+
+        self.reg.flag_set(C, c);
+        self.reg.flag_set(H, false);
+        self.reg.flag_set(Z, tmp == 0x00);
+        self.reg.flag_set(N, false);
+
+        return tmp;
+    }
+
+    fn alu_rrc(&mut self, a: u8) -> u8 {
+        let c =  a & 0x01 == 0x01;
+        let tmp = 0b10000000 | (a >> 1);
+
+        self.reg.flag_set(C, c);
+        self.reg.flag_set(H, false);
+        self.reg.flag_set(Z, tmp == 0x00);
+        self.reg.flag_set(N, false);
+
+        return tmp;
+    }
+
+    fn alu_rr(&mut self, a: u8) -> u8 {
+        let c = (a & 0x01) >> 7 == 0x01;
+        let tmp = (a >> 1) | (uu::from(self.c_flag) << 7);
+
+        self.reg.flag_set(C, c);
+        self.reg.flag_set(H, false);
+        self.reg.flag_set(Z, tmp == 0x00);
+        self.reg.flag_set(N, false);
+
+        return tmp;
+    }
+
+    fn alu_sla(&mut self, a: u8) -> u8 {
+        let c = (a & 0b10000000) >> 7 == 0x01;
+        let tmp = a << 1;
+
+        self.reg.flag_set(C, c);
+        self.reg.flag_set(H, false);
+        self.reg.flag_set(Z, tmp == 0x00);
+        self.reg.flag_set(N, false);
+
+        return tmp;
+    }
+
+    fn alu_sra(&mut self, a: u8) -> u8 {
+        let c = a & 0x01 == 0x01;
+        let tmp = (a >> 1) | (a & 0b10000000);
+
+        self.reg.flag_set(C, c);
+        self.reg.flag_set(H, false);
+        self.reg.flag_set(Z, tmp == 0x00);
+        self.reg.flag_set(N, false);
+
+        return tmp;
+    }
+
+    fn alu_srl(&mut self, a: u8) -> u8 {
+        let c = a & 0x01 == 0x01;
+        let tmp = a >> 1;
+
+        self.reg.flag_set(C, c);
+        self.reg.flag_set(H, false);
+        self.reg.flag_set(Z, tmp == 0x00);
+        self.reg.flag_set(N, false);
+
+        return tmp;
+    }
+
+    fn alu_swap(&mut self, a: u8) -> u8 {
+        self.reg.flag_set(C, false);
+        self.reg.flag_set(H, false);
+        self.reg.flag_set(Z, a == 0x00);
+        self.reg.flag_set(N, false);
+
+        return (a >> 4) | (a << 4);
+    }
+
+    fn alu_bit(&mut self, a: u8, bit_num: u8) {
+        let tmp = a & (1 << bit_num) == 0x00;
+
+        self.reg.flag_set(H, false);
+        self.reg.flag_set(Z, tmp);
+        self.reg.flag_set(N, true);
+    }
+
+    fn alu_res(&mut self, a: u8, bit_num: u8) -> u8 {
+        return a & !(1 << bit_num);
+    }
+    fn alu_set(&mut self, a: u8, bit_num: u8) -> u8 {
+        return a | (1 << bit_num);
+    }
+}
