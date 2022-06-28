@@ -1,25 +1,22 @@
 require_relative './base'
 
 module Operations
-  class ADD < Base
-    def u8_template
-      ERB.new <<~EOF
-        cpu.reg.a = #{call};
-      EOF
+  module ADD
+    class X8 < Base
+      def template
+        ERB.new <<~EOF
+          cpu.reg.a = cpu.alu_add_u8(#{@op1_builder.call}, #{@op2_builder.call});
+        EOF
+      end
     end
 
-    def u16_template
-      ERB.new <<~EOF
-<% if operand1.pointer? %>
-        cpu.#{operand1.clean.downcase} = #{call};
-<% else %>
-        cpu.reg.set_#{operand1.clean.downcase}(#{call});
-<% end %>
-      EOF
-    end
-
-    def call
-      "cpu.alu_add_u8(#{@op1_builder.call}, #{@op2_builder.call})"
+    class X16 < Base
+      def template
+        ERB.new <<~EOF
+          let value = "cpu.alu_add_u8(#{@op1_builder.call}, #{@op2_builder.call})"
+          <%= write_u16 %>;
+        EOF
+      end
     end
   end
 end

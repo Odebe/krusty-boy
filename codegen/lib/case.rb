@@ -45,9 +45,23 @@ class Case
   end
 
   def operation
+    group_operation || plain_operation
+  end
+
+  def group_operation
+    Operations.const_get(info['mnemonic']).const_get(group.upcase).new(operand1, operand2)
+  rescue NameError
+    nil
+  end
+
+  def plain_operation
     Operations.const_get(info['mnemonic']).new(operand1, operand2)
   rescue NameError
     nil
+  end
+
+  def group
+    info['group'].split('/')[0]
   end
 
   def build

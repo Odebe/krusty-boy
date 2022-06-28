@@ -1,19 +1,42 @@
 require_relative './base'
 
 module Operations
-  class DEC < Base
-    def self.template
-      ERB.new <<~EOF
+  module DEC
+    class X8 < Base
+      def template
+        ERB.new <<~EOF
 <% if operand1.indirect? %>
-       cpu.write_u8(<%= operand1.render_as(::Strategy::Read::Register) %>, <%= call %>);
+          <%= write_u8(value) %>;
 <% else %>
-      cpu.reg.<%= operand1.clean.downcase %> = <%= call %>;
+          <%= write_u8(value) %>;
 <% end %>
-      EOF
+        EOF
+      end
+
+      def value
+        if operand1.indirect?
+          "cpu.alu_inc(cpu.read_u8(#{addr}))"
+        else
+          "cpu.alu_dec(#{@op1_builder.call})"
+        end
+      end
+
+      def addr
+        operand1.render_as(::Strategy::Read::Register)
+      end
     end
 
-    def call
-      "cpu.alu_dec(#{@op1_builder.call})"
+    class X16 < Base
+      def template
+        ERB.new <<~EOF
+          <%= write_u16(value) %>;
+        EOF
+      end
+
+      def value
+        "cpu.alu_dec(#{@op1_builder.call})"
+      end
     end
   end
 end
+

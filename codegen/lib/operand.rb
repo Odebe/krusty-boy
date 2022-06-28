@@ -50,7 +50,7 @@ class Operand
   end
 
   def flag?
-    %w[Z NZ C NZ].include?(clean)
+    %w[Z NZ C NC].include?(clean)
   end
 
   def composed?

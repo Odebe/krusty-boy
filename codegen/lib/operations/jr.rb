@@ -6,8 +6,8 @@ module Operations
       ERB.new <<~EOF
         let delta = cpu.read_n() as i8; 
 
-<% if operand2.present? %> if <%= @op1_builder.call %> { <% end %>
-        self.pc = ((u32::from(self.reg.pc) as i32) + i32::from(delta)) as u16;
+<% if operand2.present? %> if <%= operand1.render_as(::Strategy::Read::Flag) %> { <% end %>
+        cpu.jr(delta);
 <% if operand2.present? %> } <% end %>
       EOF
     end

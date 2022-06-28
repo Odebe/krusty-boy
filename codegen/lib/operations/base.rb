@@ -16,10 +16,8 @@ module Operations
     private
 
     def select_template
-      if operand1.u8? && respond_to?(:u8_template)
-        u8_template
-      elsif operand1.u16? && respond_to?(:u16_template)
-        u16_template
+      if respond_to?(:template)
+        template
       else
         self.class.template
       end
@@ -31,6 +29,28 @@ module Operations
 
     def operand2
       @op2_builder.operand
+    end
+
+    def write_u8(value = 'value')
+      if operand1.addr?
+        "cpu.mmu.write_u8(addr, #{value})"
+      elsif operand1.register?
+        "cpu.reg.#{operand1.clean.downcase} = #{value}"
+      else
+        'compile_error!()'
+      end
+    end
+
+    def write_u16(value = 'value')
+      if operand1.addr?
+        "cpu.mmu.write_u16(addr, #{value})"
+      elsif operand1.pointer?
+        "cpu.#{operand1.clean.downcase} = #{value}"
+      elsif operand1.register?
+        "cpu.reg.set_#{operand1.clean.downcase}(#{value})"
+      else
+        'compile_error!()'
+      end
     end
   end
 end

@@ -1,19 +1,28 @@
 require_relative './base'
 
 module Operations
-  class INC < Base
-    def self.template
-      ERB.new <<~EOF
+  module INC
+    class X8 < Base
+      def template
+        ERB.new <<~EOF
 <% if operand1.indirect? %>
-       cpu.write_u8(<%= operand1.render_as(::Strategy::Read::Register) %>, <%= call %>);
+          let addr = #{operand1.render_as(::Strategy::Read::Register)};
+          let value = cpu.alu_inc(cpu.read_u8(addr));
 <% else %>
-      cpu.reg.<%= operand1.clean.downcase %> = <%= call %>;
+          let value = cpu.alu_inc(#{@op1_builder.call});
 <% end %>
-      EOF
+          <%= write_u8 %>;
+        EOF
+      end
     end
 
-    def call
-      "cpu.alu_inc(#{@op1_builder.call})"
+    class X16 < Base
+      def template
+        ERB.new <<~EOF
+          let value = cpu.alu_dec(#{@op1_builder.call});
+          <%= write_u16 %>;
+        EOF
+      end
     end
   end
 end

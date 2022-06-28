@@ -17,13 +17,14 @@ pub fn exec_opcode(cpu: &mut Cpu) -> u8 {
       <%= rcase.build %>
     <% end %>
   }
+}
 EOF
 
 
-# opcodes = opcodes['unprefixed']
-opcodes = opcodes['cbprefixed']
+opcodes = opcodes['unprefixed']
+# opcodes = opcodes['cbprefixed']
 
-# opcodes = opcodes.select { |_k, v| %w[SWAP].include? v['mnemonic'] }
+opcodes = opcodes.select { |_k, v| %w[JR].include? v['mnemonic'] }
 
 all_count = opcodes.keys.count
 generated = 0

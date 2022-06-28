@@ -64,6 +64,10 @@ impl Cpu {
         return r;
     }
 
+    fn jr(&mut self, delta: i8) {
+        self.pc = ((u32::from(self.reg.pc) as i32) + i32::from(delta)) as u16;
+    }
+
     fn alu_dec(&mut self, a: u8) -> u8 {
         let tmp = a.wrapping_sub(1);
 
