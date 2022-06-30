@@ -2,6 +2,7 @@ class Operand
   TRANSLATIONS = {
     'd8' => 'n',
     'r8' => 'd',
+    'a8' => 'n',
     'd16' => 'nn',
     'a16' => 'nn'
   }
@@ -31,6 +32,10 @@ class Operand
 
   def addr?
     indirect? || (!number? && !register? && !pointer? && !flag?)
+  end
+
+  def half_word?
+    @mnem.include?('a8')
   end
 
   def indirect?

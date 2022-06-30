@@ -5,7 +5,7 @@ module Operations
     class X8 < Base
       def template
         ERB.new <<~EOF
-          cpu.a = cpu.alu_and(cpu.reg.a, <%= @op1_builder.call %>)";
+          cpu.a = cpu.alu_and(cpu.reg.a, <%= @op1_builder.call %>);
         EOF
       end
     end

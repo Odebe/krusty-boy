@@ -3314,7 +3314,7 @@
       ],
       "addr": "0xc7",
       "group": "control/br",
-      "operand1": "00H"
+      "operand1": "0"
     },
     "0xc8": {
       "mnemonic": "RET",
@@ -3447,7 +3447,7 @@
       ],
       "addr": "0xcf",
       "group": "control/br",
-      "operand1": "08H"
+      "operand1": "1"
     },
     "0xd0": {
       "mnemonic": "RET",
@@ -3564,7 +3564,7 @@
       ],
       "addr": "0xd7",
       "group": "control/br",
-      "operand1": "10H"
+      "operand1": "2"
     },
     "0xd8": {
       "mnemonic": "RET",
@@ -3665,7 +3665,7 @@
       ],
       "addr": "0xdf",
       "group": "control/br",
-      "operand1": "18H"
+      "operand1": "3"
     },
     "0xe0": {
       "mnemonic": "LDH",
@@ -3763,7 +3763,7 @@
       ],
       "addr": "0xe7",
       "group": "control/br",
-      "operand1": "20H"
+      "operand1": "4"
     },
     "0xe8": {
       "mnemonic": "ADD",
@@ -3845,7 +3845,7 @@
       ],
       "addr": "0xef",
       "group": "control/br",
-      "operand1": "28H"
+      "operand1": "5"
     },
     "0xf0": {
       "mnemonic": "LDH",
@@ -3958,7 +3958,7 @@
       ],
       "addr": "0xf7",
       "group": "control/br",
-      "operand1": "30H"
+      "operand1": "6"
     },
     "0xf8": {
       "mnemonic": "LD",
@@ -4056,7 +4056,7 @@
       ],
       "addr": "0xff",
       "group": "control/br",
-      "operand1": "38H"
+      "operand1": "7"
     }
   },
   "cbprefixed": {

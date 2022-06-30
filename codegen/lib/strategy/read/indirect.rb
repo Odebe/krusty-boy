@@ -8,7 +8,11 @@ module Strategy
       end
 
       def call(operand)
-        "cpu.mmu.read(#{@base.call(operand)})"
+        if operand.u8?
+          "cpu.mmu.read_u8(#{@base.call(operand)})"
+        else
+          "cpu.mmu.read_u16(#{@base.call(operand)})"
+        end
       end
     end
   end

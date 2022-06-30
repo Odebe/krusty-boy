@@ -8,6 +8,7 @@ pub struct Cpu {
     pub pc: u16,
     pub sp: u16,
     pub reg: Registers,
+    pub ei: bool,
 }
 
 impl Cpu {
@@ -17,6 +18,7 @@ impl Cpu {
             pc: PROG_START,
             sp: 0,
             reg: Registers::new(),
+            ei: false
         }
     }
 
@@ -52,7 +54,7 @@ impl Cpu {
         return value;
     }
 
-    fn stack_add(&mut self, v: u16) {
+    fn stack_push(&mut self, v: u16) {
         self.reg.sp -= 2;
         self.mmu.write_u16(self.reg.sp, v);
     }

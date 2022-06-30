@@ -30,10 +30,10 @@ class OperandBuilder
         ::Strategy::Read::Pointer
       elsif @operand.number?
         ::Strategy::Read::Number
-      # elsif @operand.flag?
-      #   ::Strategy::Read::Flag
       else
-        ::Strategy::Read::Simple
+        _base = ::Strategy::Read::Simple
+        _base = ::Strategy::Read::HalfWord.new(_base) if @operand.half_word?
+        _base
       end
 
     if (@operand.indirect? && @only) || (@operand.indirect? && @operand.key == 'operand2')
