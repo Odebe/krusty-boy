@@ -24,8 +24,6 @@ module Operations
     def add_write_func_call
       if operand2.indirect?
         "cpu.mmu.write_u8(addr, value)"
-      elsif operand2.register? && operand2.u16?
-        "cpu.reg.set_#{operand2.clean.downcase}(value)"
       elsif operand2.register? && operand2.u8?
         "cpu.reg.#{operand2.clean.downcase} = value"
       else

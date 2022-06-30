@@ -24,7 +24,7 @@ EOF
 opcodes = opcodes['unprefixed']
 # opcodes = opcodes['cbprefixed']
 
-opcodes = opcodes.select { |_k, v| %w[JR].include? v['mnemonic'] }
+# opcodes = opcodes.select { |_k, v| %w[RES].include? v['mnemonic'] }
 
 all_count = opcodes.keys.count
 generated = 0
@@ -49,9 +49,9 @@ end
 text = template.result(binding)
 
 
-# puts "Реализовано: #{generated}/#{all_count}"
-# puts "Done: #{done.uniq.inspect}"
-# puts "TODO: #{todo.uniq.inspect}"
+puts "Реализовано: #{generated}/#{all_count}"
+puts "Done: #{done.uniq.inspect}"
+puts "TODO: #{todo.uniq.inspect}"
 
 # code = '0xc6'
 # opcode_case = Case.new(code, opcodes[code])
@@ -60,9 +60,9 @@ text = template.result(binding)
 # puts text
 
 
-fname = './meta3.rs'
-
-File.delete(fname)
-f = File.open(fname, 'w')
-f.write(text)
-f.close
+# fname = './meta3.rs'
+#
+# File.delete(fname)
+# f = File.open(fname, 'w')
+# f.write(text)
+# f.close

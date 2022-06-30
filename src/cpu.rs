@@ -284,6 +284,27 @@ impl Cpu {
         self.reg.flag_set(N, true);
     }
 
+    fn alu_cpl(&mut self) {
+        self.reg.a = !self.reg.a;
+
+        self.reg.flag_set(H, true);
+        self.reg.flag_set(N, true);
+    }
+
+    fn alu_ccf(&mut self) {
+        let v = !self.reg.flag_get(C);
+
+        self.reg.flag_set(C, v);
+        self.reg.flag_set(H, false);
+        self.reg.flag_set(N, false);
+    }
+
+    fn alu_scf(&mut self) {
+        self.reg.flag_set(C, true);
+        self.reg.flag_set(H, false);
+        self.reg.flag_set(N, false);
+    }
+
     fn alu_res(&mut self, a: u8, bit_num: u8) -> u8 {
         return a & !(1 << bit_num);
     }
