@@ -11,7 +11,7 @@ module Operations
             cpu.pc = value;
         }
 <% else %>
-        cpu.pc = <%= @op1_builder.call %>;
+        cpu.pc = <%= operand1.render_as(::Strategy::Read::Register) %>;
 <% end %>
       EOF
     end

@@ -31,10 +31,10 @@ class OperandBuilder
       elsif @operand.number?
         ::Strategy::Read::Number
       else
-        _base = ::Strategy::Read::Simple
-        _base = ::Strategy::Read::HalfWord.new(_base) if @operand.half_word?
-        _base
+        ::Strategy::Read::Simple
       end
+
+    base = ::Strategy::Read::HalfWord.new(base) if @operand.half_word?
 
     if (@operand.indirect? && @only) || (@operand.indirect? && @operand.key == 'operand2')
       ::Strategy::Read::Indirect.new(base)

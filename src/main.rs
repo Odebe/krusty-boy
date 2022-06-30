@@ -45,7 +45,7 @@ fn read_rom(path : &str) -> Vec<u8> {
 
 fn main_loop(mut cpu : Emulator) {
     while cpu.running() {
-        let (_length, cycles) = meta::exec_opcode(&mut cpu);
+        let cycles = cpu.tic();
         println!("Cycles: {}", cycles);
     }
 }

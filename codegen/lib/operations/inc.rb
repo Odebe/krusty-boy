@@ -19,7 +19,7 @@ module Operations
     class X16 < Base
       def template
         ERB.new <<~EOF
-          let value = cpu.alu_dec(#{@op1_builder.call});
+          let value = cpu.alu_inc16(#{@op1_builder.call});
           <%= write_u16 %>;
         EOF
       end

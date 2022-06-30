@@ -3701,7 +3701,7 @@
       "operand1": "HL"
     },
     "0xe2": {
-      "mnemonic": "LD",
+      "mnemonic": "LDH",
       "length": 1,
       "cycles": [
         8
@@ -3881,7 +3881,7 @@
       "operand1": "AF"
     },
     "0xf2": {
-      "mnemonic": "LD",
+      "mnemonic": "LDH",
       "length": 1,
       "cycles": [
         8

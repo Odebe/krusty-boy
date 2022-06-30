@@ -14,8 +14,8 @@ module Operations
       else
         # LD A,($FF00+a8)
         ERB.new <<~EOF
-          let addr = <%= @op2_builder.call %>;
-          self.reg.a = cpu.mmu.read_u8(addr);
+          let addr = <%= operand2.render_as(::Strategy::Read::HalfWord.new(::Strategy::Read::Simple)) %>;
+          cpu.reg.a = cpu.mmu.read_u8(addr);
         EOF
       end
     end

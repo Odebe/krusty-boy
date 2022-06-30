@@ -34,7 +34,7 @@ module Operations
       end
 
       def value
-        "cpu.alu_dec(#{@op1_builder.call})"
+        "cpu.alu_dec16(#{@op1_builder.call})"
       end
     end
   end

@@ -8,6 +8,7 @@ opcodes = JSON.parse(File.read('opcodes.json'))
 
 template = ERB.new  <<~EOF
 use crate::cpu::Cpu;
+use crate::registers::Flag::{C, N, H, Z};
 
 pub fn exec_opcode(cpu: &mut Cpu) -> u8 {
   let opcode = cpu.read_opcode();
